@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Κατανομή Εδρών (Ν. 1264/1982)</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1565c0">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker Registered'))
+            .catch(err => console.log('Service Worker Error', err));
+        });
+      }
+    </script>
+
+    <style>
+        /* Reset */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="text"] { -moz-appearance: textfield; appearance: textfield; font-family: inherit; }
+
+        :root {
+            --syn-red: #CC0000;
+            --syn-blue: #1565c0; 
+            --syn-blue-light: #2196f3;
+            --text-grey: #757575;
+            --soft-text: #888;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        h1 { text-align: center; color: var(--syn-red); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; font-size: 1.6rem; }
+        
+        /* PDF Header */
+        #pdf-header-info { display: none; text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--syn-blue); padding-bottom: 10px; }
+        #pdf-title-text { color: #333; margin: 5px 0; font-size: 1.4rem; }
+        #pdf-date-text { color: #666; margin: 0; font-size: 1rem; }
+
+        /* Config */
+        .config-box { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #90caf9; }
+        .control-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .counter-wrapper { display: flex; align-items: center; gap: 8px; }
+        .live-counter { font-size: 1.4rem; font-weight: bold; color: var(--syn-red); }
+        .slash-separator { font-size: 1.4rem; color: #aaa; font-weight: 300; }
+        input[type="text"].big-input { width: 80px; padding: 5px; text-align: center; font-size: 1.2em; font-weight: bold; border: 2px solid var(--syn-blue); border-radius: 5px; }
+        .config-box label { color: var(--syn-blue); font-weight: bold; }
+
+        /* Mode Selector */
+        .mode-selector { text-align: center; background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ccc; font-weight: bold; color: var(--syn-blue); }
+        .mode-selector label { margin: 0 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+        .mode-selector input[type="radio"] { cursor: pointer; transform: scale(1.2); }
+
+        /* Cards */
+        .party-card { background: #fff; border: 1px solid #e0e0e0; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px; }
+        .card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        input[type="text"].p-name { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; font-weight: 500; text-transform: uppercase; }
+        .btn-del { background: var(--syn-red); color: white; border: none; width: 35px; height: 35px; border-radius: 5px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+        .vote-section { display: flex; align-items: center; justify-content: space-between; }
+        .vote-control { display: flex; align-items: center; gap: 0; }
+        .vote-input { text-align: center; padding: 0; font-weight: bold; font-size: 1.2rem; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; border-left: none; border-right: none; border-radius: 0; width: 70px; height: 45px; box-sizing: border-box; }
+        
+        .btn-vote { width: 50px; height: 45px; background: var(--syn-blue-light); color: white; border: none; font-size: 1.5rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
+        .btn-vote:active { background: var(--syn-blue); transform: scale(0.95); }
+        .btn-minus { border-radius: 5px 0 0 5px; }
+        .btn-plus { border-radius: 0 5px 5px 0; }
+
+        /* Realtime Info & Sequences */
+        .realtime-wrapper { text-align: right; font-size: 0.95rem; line-height: 1.2; font-style: normal; color: var(--soft-text); display: flex; flex-direction: column; align-items: flex-end; }
+        .rt-label { color: var(--soft-text); font-size: 0.75rem; font-weight: normal; margin-bottom: 2px; text-transform: none; }
+        .rt-data { font-weight: bold; color: var(--syn-blue); }
+        
+        .sequence-list { font-size: 0.9rem; color: #757575; font-family: inherit; font-weight: normal; margin: 0; padding: 0; border: none; background: transparent; display: none; margin-left: 8px; }
+
+        /* Extra Votes */
+        .extra-container { display: flex; gap: 10px; margin-bottom: 10px; }
+        .extra-box { flex: 1; background: #fff3e0; padding: 10px; border-radius: 8px; border: 1px solid #ffe0b2; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .extra-label { font-weight: bold; color: #e65100; font-size: 0.9rem; }
+        .extra-control-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; }
+
+        /* Measure Bar */
+        .measure-bar { background: #e8f5e9; border: 1px solid #4caf50; color: #2e7d32; padding: 8px; text-align: center; font-weight: bold; border-radius: 6px; margin-bottom: 20px; font-size: 1rem; }
+        .measure-limit { font-size: 0.85em; color: #666; font-weight: normal; margin-left: 8px; }
+
+        /* Buttons */
+        .actions-top { display: flex; gap: 10px; margin-top: 20px; }
+        .actions-bottom { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+        button.main-btn { width: 100%; padding: 12px; border: none; border-radius: 6px; color: white; font-weight: bold; font-size: 1rem; cursor:pointer; }
+        .btn-add { background: #43a047; }
+        .btn-reset { background: #757575; }
+        .btn-calc { background: var(--syn-blue); font-size: 1.2rem; box-shadow: 0 4px 6px rgba(21, 101, 192, 0.3); margin-top: 10px;}
+        .btn-pdf { background: #e65100; font-size: 1.1rem; margin-top: 20px; display: none; width: 100%; }
+        .btn-email { background: #0288d1; font-size: 1.1rem; margin-top: 10px; display: none; width: 100%; }
+        .btn-details { background: #00897b; font-size: 1rem; display:none; }
+        .btn-tie-win { background: #d32f2f; margin-top:5px; padding: 8px 15px; font-size: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s; }
+        .btn-tie-win:hover { background: #b71c1c; transform: scale(1.02); }
+
+        /* Results Area */
+        #results-container { display: none; margin-top: 30px; padding-top: 10px;}
+        .stats { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-box { flex: 1; background: #f5f5f5; padding: 10px; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
+        .stat-num { font-size: 1.4em; font-weight: bold; display: block; color: #333; }
+        .stat-lbl { font-size: 0.75em; text-transform: uppercase; color: #555; font-weight: 600;}
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.95em; line-height: 1.4; margin-bottom: 10px; }
+        th { background: #37474f; color: white; padding: 10px; text-align: center; }
+        td { border-bottom: 1px solid #eee; padding: 10px 8px; text-align: center; vertical-align: middle; }
+        td:first-child { text-align: left; font-weight: bold; }
+        
+        .percent { background: #e3f2fd; color: var(--syn-blue); padding: 4px 6px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .badge { background: #c8e6c9; color: #2e7d32; padding: 3px 8px; border-radius: 10px; font-weight: bold; font-size: 1.1em; }
+        .gray-row td { background-color: #fafafa; color: #555; font-style: italic; }
+
+        /* DETAILS TABLE STYLE */
+        #details-container { display: none; margin-top: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .details-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 0.9em; }
+        .details-info div { background: white; padding: 8px; border: 1px solid #eee; border-radius: 4px; }
+        .details-info strong { color: #333; }
+        
+        #detailed-table th { background: #546e7a; font-size: 0.85rem; }
+        #detailed-table td { font-size: 0.9rem; text-align: center; }
+        #detailed-table td:first-child { text-align: left; }
+
+        #tie-warning { display: none; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: normal; line-height:1.5; }
+
+        /* PDF Sequences Section */
+        #pdf-sequences-container { display: none; }
+        
+        /* Modal Email Mapping */
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center; }
+        .modal-content { background: white; padding: 25px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel { background: #9e9e9e; }
+
+        .credits { margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; text-align: center; font-size: 0.85rem; color: var(--text-grey); line-height: 1.6; }
+
+        @media print {
+            body { background-color: #fff; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+            .config-box, #party-list, .extra-container, .measure-bar, .actions-top, .actions-bottom, h1, .btn-pdf, .btn-email, .btn-details, .mode-selector { display: none !important; }
+            #pdf-header-info { display: block !important; }
+            #results-container, #details-container { display: block !important; margin-top: 0; border: none; }
+            
+            /* Κάνουμε ορατό τον πίνακα αύξοντων αριθμών ΜΟΝΟ στην εκτύπωση/PDF */
+            #pdf-sequences-container { display: block !important; margin-top: 40px; page-break-before: auto; }
+            
+            .stats { border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
+            .stat-box { border: none; background: none; padding: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app-content">
+    <h1 id="main-title">🗳️ ΣΥΝΕΚ - Εκλογή Αντιπροσώπων ΟΛΜΕ</h1>
+    <div style="text-align: center; font-size: 0.85em; color: #666; margin-top: -10px; margin-bottom: 15px;">Σύστημα Απλής Αναλογικής (Ν. 1264/1982)</div>
+
+    <div class="mode-selector" data-html2canvas-ignore="true">
+        <label>
+            <input type="radio" name="election_mode" value="olme" checked onchange="toggleMode()"> 
+            Αντιπρόσωποι ΟΛΜΕ
+        </label>
+        <label>
+            <input type="radio" name="election_mode" value="elme" onchange="toggleMode()"> 
+            Δ.Σ. ΕΛΜΕ
+        </label>
+    </div>
+
+    <div id="pdf-header-info">
+        <h2 id="pdf-title-text"></h2>
+        <p id="pdf-date-text"></p>
+    </div>
+
+    <div class="config-box" data-html2canvas-ignore="true">
+        
+        <div class="control-row">
+            <label>Άθροισμα ψήφων / Ψηφίσαντες:</label>
+            <div class="counter-wrapper">
+                <span class="live-counter" id="live-counter-disp">0</span>
+                <span class="slash-separator">/</span>
+                <input type="text" inputmode="numeric" id="expectedVoters" class="big-input" placeholder="" value="" oninput="handleNumericInput(this)" style="background:#fff;">
+            </div>
+        </div>
+        <div class="control-row">
+            <label id="lbl-seats">Σύνολο Αντιπροσώπων:</label>
+            <div class="counter-wrapper">
+                <input type="text" inputmode="numeric" id="totalSeats" class="big-input" value="" readonly style="background-color: transparent; border: none; color: var(--syn-blue); font-size: 1.6rem; text-align: right; width: 60px;" oninput="handleNumericInput(this)">
+            </div>
+        </div>
+    </div>
+
+    <div id="party-list"></div>
+
+    <div class="extra-container">
+        <div class="extra-box">
+            <span class="extra-label">ΛΕΥΚΑ / ΑΚΥΡΑ</span>
+            <div class="extra-control-row">
+                <div></div>
+                <div class="vote-control">
+                    <button class="btn-vote btn-minus" onclick="changeVote('invalidVotes', -1)">-</button>
+                    <input type="text" inputmode="numeric" id="invalidVotes" value="" class="vote-input" oninput="handleNumericInput(this)">
+                    <button class="btn-vote btn-plus" onclick="changeVote('invalidVotes', 1)">+</button>
+                </div>
+                <div class="sequence-list" id="seq-invalidVotes" style="justify-self: start; padding-left: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="measure-bar" id="global-measure-disp">Εκλογικό Μέτρο: 0</div>
+
+    <div class="actions-top" data-html2canvas-ignore="true">
+        <button class="main-btn btn-add" onclick="addRow()">+ Προσθήκη</button>
+        <button class="main-btn btn-reset" onclick="resetApp()">↺ Καθαρισμός</button>
+    </div>
+    <div class="actions-bottom" data-html2canvas-ignore="true">
+        <button class="main-btn btn-calc" onclick="fullCalculationAndDisplay()">ΥΠΟΛΟΓΙΣΜΟΣ ΚΑΤΑΝΟΜΗΣ</button>
+    </div>
+
+    <div id="results-container">
+        <div id="tie-warning"></div>
+        <div class="stats">
+            <div class="stat-box"><span class="stat-num" id="show-total">0</span><span class="stat-lbl">Ψηφίσαντες</span></div>
+            <div class="stat-box"><span class="stat-num" id="show-valid" style="color:#2e7d32">0</span><span class="stat-lbl">Έγκυρα</span></div>
+            <div class="stat-box"><span class="stat-num" id="show-measure" style="color:var(--syn-blue)">0</span><span class="stat-lbl">Μετρο</span></div>
+        </div>
+        <h3 style="text-align:center; color:#333; margin:10px 0;">Τελικά Αποτελέσματα</h3>
+        <table id="res-table">
+            <thead><tr><th>Παράταξη</th><th>Ψήφοι</th><th>%</th><th id="th-seats">Αντιπρόσωποι</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div style="text-align:center; margin-top:10px;" data-html2canvas-ignore="true">
+        <button class="main-btn btn-details" id="btn-details" onclick="toggleDetails()">📋 Προβολή Ανάλυσης Φάσεων</button>
+    </div>
+
+    <div id="details-container">
+        <h4 style="margin-top:0; text-align:center; color:#546e7a;">Αναλυτικά Στοιχεία Κατανομής</h4>
+        
+        <div class="details-info">
+            <div><strong>Εκλογικό Μέτρο:</strong> <span id="det-measureA">0</span></div>
+            <div><strong>Όριο 1/3 Μέτρου (Β' Φάση):</strong> <span id="det-threshold">0</span></div>
+            <div><strong>Αδιάθετες μετά την Α' Φάση:</strong> <span id="det-remSeats">0</span></div>
+        </div>
+
+        <table id="detailed-table">
+            <thead>
+                <tr>
+                    <th>Παράταξη</th>
+                    <th>Ψήφοι</th>
+                    <th>Α' Φάση</th>
+                    <th>Υπόλοιπο</th>
+                    <th>Β' Φάση</th>
+                    <th>Γ' Φάση</th>
+                    <th>Σύνολο</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="pdf-sequences-container">
+        <h4 style="margin-top:30px; margin-bottom:10px; text-align:center; color:#37474f; border-top:2px solid #eee; padding-top:20px;">Καταγραφή Αύξοντων Αριθμών Ψηφοδελτίων</h4>
+        <table id="pdf-seq-table">
+            <thead>
+                <tr>
+                    <th style="width:30%;">Συνδυασμός</th>
+                    <th style="width:70%;">Α/Α Ψηφοδελτίων</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <button class="main-btn btn-pdf" id="btn-pdf" onclick="printToPDF()">📥 Λήψη PDF</button>
+    <button class="main-btn btn-email" id="btn-email" onclick="openEmailModal()">📧 Αποστολή με Email</button>
+    
+    <div class="credits">
+        <strong>Πύρζα Φανή</strong> | <a href="mailto:fpyrza.alt@gmail.com" style="color: var(--text-grey); text-decoration: none;">fpyrza.alt@gmail.com</a> | 6972137509<br>
+        <span style="font-size: 0.85em; font-style: italic;">🛠️ Για οποιοδήποτε τεχνικό ζήτημα ή πρόταση βελτίωσης της εφαρμογής, παρακαλώ επικοινωνήστε στα παραπάνω στοιχεία</span>
+        
+        <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 5px;">
+            <a rel="license" href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+                <img alt="Άδεια Creative Commons" style="border-width:0; width: 88px; height: 31px;" src="https://i.creativecommons.org/l/by/4.0/88x31.png" />
+            </a>
+            <span style="font-size: 0.75em; color: var(--soft-text);">
+                Αυτό το έργο χορηγείται με άδεια <a rel="license" href="http://creativecommons.org/licenses/by/4.0/" target="_blank" style="color: var(--syn-blue); text-decoration: none; font-weight: bold;">Creative Commons Αναφορά Δημιουργού 4.0 Διεθνές</a>.
+            </span>
+        </div>
+    </div>
+</div>
+
+<div id="email-modal" class="modal-overlay" data-html2canvas-ignore="true">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:var(--syn-blue);">Αποστολή Αποτελεσμάτων</h3>
+        
+        <div style="margin-bottom: 10px;">
+            <label style="font-weight:bold; color:var(--syn-blue); font-size:0.9em;">Όνομα ΕΛΜΕ (χωρίς τη λέξη ΕΛΜΕ):</label>
+            <input type="text" id="modal-elme-name" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;" placeholder="π.χ. Νότιας Αθήνας">
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label style="font-weight:bold; color:var(--syn-blue); font-size:0.9em;">Ημερομηνία Εκλογών:</label>
+            <input type="text" id="modal-election-date" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="font-weight:bold; color:var(--syn-blue); font-size:0.9em;">Ονοματεπώνυμο Αποστολέα:</label>
+            <input type="text" id="modal-sender-name" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;" placeholder="π.χ. Παπαδόπουλος Γιάννης">
+        </div>
+        
+        <p style="font-size:0.9em; color:#555; margin-bottom:5px; font-weight:bold;">Αντιστοίχιση Παρατάξεων:</p>
+        <p style="font-size:0.85em; color:#777; margin-top:0;">Για την ορθή κεντρική καταγραφή, επιλέξτε την παράταξη που αντιστοιχεί στο κάθε τοπικό σχήμα.</p>
+        
+        <div id="mapping-container"></div>
+        <div class="modal-actions">
+            <button class="main-btn btn-cancel" onclick="closeEmailModal()">Ακύρωση</button>
+            <button class="main-btn btn-add" onclick="executeSendEmail()">✔️ Αποστολή Email</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- ΚΑΘΟΛΙΚΕΣ ΜΕΤΑΒΛΗΤΕΣ ΓΙΑ ΙΣΟΨΗΦΙΕΣ ΚΑΙ Α/Α ΨΗΦΟΔΕΛΤΙΩΝ ---
+    let manualTieWinners = {};
+    let globalBallotCounter = 0;
+    let ballotRegistry = {}; 
+
+    function resetApp() {
+        if (confirm("Είστε σίγουροι ότι θέλετε να καθαρίσετε όλα τα δεδομένα και να ξεκινήσετε από την αρχή;")) {
+            // Μηδενίζει επιθετικά όλα τα πεδία
+            document.querySelectorAll('input').forEach(input => {
+                if(input.type === 'text' || input.type === 'number') input.value = '';
+            });
+            window.location.reload();
+        }
+    }
+
+    function resetTieWinners() {
+        manualTieWinners = {};
+    }
+
+    function handleNumericInput(el) {
+        el.value = el.value.replace(/[^0-9]/g, '');
+        let newVal = parseInt(el.value) || 0;
+        let id = el.id;
+
+        if (id !== 'expectedVoters' && id !== 'totalSeats') {
+            if (!ballotRegistry[id]) ballotRegistry[id] = [];
+            let currentLen = ballotRegistry[id].length;
+            let diff = newVal - currentLen;
+            
+            if (diff > 0) {
+                for (let i = 0; i < diff; i++) {
+                    globalBallotCounter++;
+                    ballotRegistry[id].push(globalBallotCounter);
+                }
+            } else if (diff < 0) {
+                for (let i = 0; i < Math.abs(diff); i++) {
+                    ballotRegistry[id].pop();
+                }
+            }
+        }
+
+        resetTieWinners();
+        updateRealTimeInfo();
+    }
+
+    function toggleMode() {
+        resetTieWinners();
+        const mode = document.querySelector('input[name="election_mode"]:checked').value;
+        const seatsInput = document.getElementById('totalSeats');
+        const lblSeats = document.getElementById('lbl-seats');
+        const mainTitle = document.getElementById('main-title');
+        const thSeats = document.getElementById('th-seats');
+        
+        if (mode === 'olme') {
+            mainTitle.innerText = '🗳️ ΣΥΝΕΚ - Εκλογή Αντιπροσώπων ΟΛΜΕ';
+            lblSeats.innerText = 'Σύνολο Αντιπροσώπων:';
+            thSeats.innerText = 'Αντιπρόσωποι';
+            seatsInput.readOnly = true;
+            seatsInput.style.backgroundColor = 'transparent';
+            seatsInput.style.border = 'none';
+        } else {
+            mainTitle.innerText = '🗳️ ΣΥΝΕΚ - Εκλογές Δ.Σ. ΕΛΜΕ';
+            lblSeats.innerText = 'Έδρες Δ.Σ. ΕΛΜΕ:';
+            thSeats.innerText = 'Έδρες';
+            seatsInput.readOnly = false;
+            seatsInput.style.backgroundColor = '#fff';
+            seatsInput.style.border = '2px solid var(--syn-blue)';
+            if (!seatsInput.value || seatsInput.value === "0") {
+                seatsInput.value = "7"; 
+            }
+        }
+        updateRealTimeInfo();
+    }
+
+    // --- ΑΛΓΟΡΙΘΜΟΣ ΑΠΛΗΣ ΑΝΑΛΟΓΙΚΗΣ Ν. 1264/1982 ---
+    function calculateSeats(parties, totalValid, seatsTotal, isFinalCalc) {
+        let measure = Math.floor(totalValid / seatsTotal);
+        let threshold = measure / 3; 
+        let tieDetected = false;
+        let tieData = null;
+
+        let allocatedA = 0;
+        parties.forEach(p => {
+            p.seatsA = measure > 0 ? Math.floor(p.votes / measure) : 0;
+            p.seatsB = 0; 
+            p.seatsC = 0;
+            p.seats = p.seatsA;
+            p.rem = measure > 0 ? p.votes - (p.seatsA * measure) : p.votes;
+            p.effectiveRem = p.rem; 
+            allocatedA += p.seatsA;
+        });
+
+        let remaining = seatsTotal - allocatedA;
+        if (remaining < 0) remaining = 0;
+        let unallocatedAfterA = remaining;
+
+        // --- Β' ΦΑΣΗ ---
+        if (remaining > 0) {
+            let eligibleB = parties.filter(p => p.seatsA > 0 && p.rem > threshold);
+            eligibleB.sort((a, b) => {
+                if (b.rem !== a.rem) return b.rem - a.rem;
+                return b.votes - a.votes;
+            });
+
+            let i = 0;
+            while (remaining > 0 && i < eligibleB.length) {
+                let currentRem = eligibleB[i].rem;
+                let currentVotes = eligibleB[i].votes;
+                let tied = [];
+                for(let j = i; j < eligibleB.length; j++){
+                    if(eligibleB[j].rem === currentRem && eligibleB[j].votes === currentVotes) tied.push(eligibleB[j]);
+                    else break;
+                }
+
+                if (tied.length <= remaining) {
+                    tied.forEach(p => {
+                        p.seats++; p.seatsB++; p.effectiveRem = 0; remaining--;
+                    });
+                    i += tied.length;
+                } else {
+                    let manualWinsCount = tied.reduce((sum, p) => sum + (manualTieWinners[p.inputId] || 0), 0);
+                    if (manualWinsCount === remaining) {
+                        tied.forEach(p => {
+                            let wins = manualTieWinners[p.inputId] || 0;
+                            for(let w=0; w<wins; w++){
+                                p.seats++; p.seatsB++; p.effectiveRem = 0; remaining--;
+                            }
+                        });
+                        i += tied.length;
+                    } else {
+                        if (isFinalCalc) {
+                            tieDetected = true;
+                            tieData = { phase: "Β' Φάση", parties: tied, contestedSeats: remaining - manualWinsCount };
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // --- Γ' ΦΑΣΗ ---
+        if (remaining > 0 && !tieDetected) {
+            let eligibleC = [...parties].sort((a, b) => {
+                if (b.effectiveRem !== a.effectiveRem) return b.effectiveRem - a.effectiveRem;
+                return b.votes - a.votes; 
+            });
+
+            let i = 0;
+            while (remaining > 0 && i < eligibleC.length) {
+                let currentRem = eligibleC[i].effectiveRem;
+                let currentVotes = eligibleC[i].votes;
+                let tied = [];
+                for(let j = i; j < eligibleC.length; j++){
+                    if(eligibleC[j].effectiveRem === currentRem && eligibleC[j].votes === currentVotes) tied.push(eligibleC[j]);
+                    else break;
+                }
+
+                if (tied.length <= remaining) {
+                    tied.forEach(p => {
+                        p.seats++; p.seatsC++; remaining--;
+                    });
+                    i += tied.length;
+                } else {
+                    let manualWinsCount = tied.reduce((sum, p) => sum + (manualTieWinners[p.inputId] || 0), 0);
+                    if (manualWinsCount === remaining) {
+                        tied.forEach(p => {
+                            let wins = manualTieWinners[p.inputId] || 0;
+                            for(let w=0; w<wins; w++){
+                                p.seats++; p.seatsC++; remaining--;
+                            }
+                        });
+                        i += tied.length;
+                    } else {
+                        if (isFinalCalc) {
+                            tieDetected = true;
+                            tieData = { phase: "Γ' Φάση", parties: tied, contestedSeats: remaining - manualWinsCount };
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return { measure, threshold, tieDetected, tieData, unallocatedAfterA };
+    }
+
+    function updateRealTimeInfo() {
+        const mode = document.querySelector('input[name="election_mode"]:checked').value;
+        const invalid = parseInt(document.getElementById('invalidVotes').value) || 0;
+        const expectedTotalInput = parseInt(document.getElementById('expectedVoters').value);
+        const expectedTotal = isNaN(expectedTotalInput) ? 0 : expectedTotalInput;
+        const isProjecting = expectedTotal > 0;
+
+        const nameList = document.querySelectorAll('.p-name');
+        const voteList = document.querySelectorAll('.p-votes');
+        
+        let currentValid = 0;
+        let partyData = [];
+        for (let i = 0; i < nameList.length; i++) {
+            let v = parseInt(voteList[i].value) || 0;
+            currentValid += v;
+            partyData.push({ votes: v, name: nameList[i].value.trim(), inputId: voteList[i].id });
+        }
+        
+        const currentTotal = currentValid + invalid;
+        document.getElementById('live-counter-disp').innerText = currentTotal;
+
+        const referenceTotal = isProjecting ? expectedTotal : currentTotal;
+        
+        if (mode === 'olme') {
+            let autoSeats = Math.floor(referenceTotal / 100);
+            if (referenceTotal % 100 > 50) {
+                autoSeats += 1;
+            }
+            document.getElementById('totalSeats').value = autoSeats > 0 ? autoSeats : "0";
+        }
+
+        const seatsTotal = parseInt(document.getElementById('totalSeats').value) || 1;
+        
+        let calcValid = currentValid;
+        let projectionFactor = 1;
+        
+        if (isProjecting && currentTotal > 0) {
+            projectionFactor = expectedTotal / currentTotal;
+            calcValid = Math.round(currentValid * projectionFactor);
+        }
+
+        let liveMeasure = Math.floor(calcValid / seatsTotal);
+        let liveThreshold = (liveMeasure / 3).toFixed(2);
+        
+        let measureText = `Εκλογικό Μέτρο: ${liveMeasure} <span class="measure-limit">(Όριο 1/3: ${liveThreshold})</span>`;
+        if(isProjecting) measureText += ` <span style="font-size:0.8em; color:#e65100; margin-left:10px;">[Βάσει Πρόβλεψης]</span>`;
+        document.getElementById('global-measure-disp').innerHTML = measureText;
+
+        let calcParties = partyData.map(p => ({ ...p, votes: isProjecting ? Math.round(p.votes * projectionFactor) : p.votes }));
+        calculateSeats(calcParties, calcValid, seatsTotal, false);
+
+        let allInputIds = ['invalidVotes', ...Array.from(voteList).map(el => el.id)];
+        
+        allInputIds.forEach(id => {
+            if (id !== 'invalidVotes') {
+                const infoDiv = document.getElementById(`info-${id}`);
+                const partyIndex = partyData.findIndex(p => p.inputId === id);
+                if (partyIndex !== -1 && infoDiv) {
+                    const projectedP = calcParties[partyIndex];
+                    if (currentValid > 0) {
+                        const percent = ((partyData[partyIndex].votes / currentValid) * 100).toFixed(1);
+                        if (isProjecting) {
+                            infoDiv.innerHTML = `<span class="rt-label">πρόβλεψη</span><div class="rt-data">${percent}% - ${projectedP.seats}</div>`;
+                        } else {
+                            infoDiv.innerHTML = `<span class="rt-label">τρέχον</span><div class="rt-data">${percent}% - ${projectedP.seats}</div>`;
+                        }
+                        infoDiv.style.visibility = 'visible';
+                    } else { 
+                        infoDiv.style.visibility = 'hidden'; 
+                    }
+                }
+            }
+
+            const seqDiv = document.getElementById(`seq-${id}`);
+            if (seqDiv) {
+                if (ballotRegistry[id] && ballotRegistry[id].length > 0) {
+                    let lastNum = ballotRegistry[id][ballotRegistry[id].length - 1];
+                    seqDiv.innerHTML = `${lastNum}`;
+                    seqDiv.style.display = 'block';
+                } else {
+                    seqDiv.innerHTML = "";
+                    seqDiv.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    window.onload = function() {
+        toggleMode(); 
+        
+        const defaultParties = ["ΣΥΝΕΚ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜΒ", "ΠΕΚ"];
+        defaultParties.forEach(partyName => addRow(partyName));
+
+        ['expectedVoters'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateRealTimeInfo);
+        });
+        updateRealTimeInfo();
+    };
+
+    function changeVote(id, delta) {
+        resetTieWinners();
+        const input = document.getElementById(id);
+        if (!ballotRegistry[id]) ballotRegistry[id] = [];
+        
+        let currentVal = parseInt(input.value) || 0;
+        let newVal = currentVal + delta;
+        if (newVal < 0) newVal = 0;
+        
+        let diff = newVal - currentVal;
+        
+        if (diff > 0) {
+            for (let i = 0; i < diff; i++) {
+                globalBallotCounter++;
+                ballotRegistry[id].push(globalBallotCounter);
+            }
+        } else if (diff < 0) {
+            for (let i = 0; i < Math.abs(diff); i++) {
+                ballotRegistry[id].pop(); 
+            }
+        }
+        
+        if (newVal <= 0) {
+            input.value = ""; 
+        } else {
+            input.value = newVal;
+        }
+        
+        updateRealTimeInfo();
+    }
+
+    function addRow(partyName = "") {
+        resetTieWinners();
+        const uniqueId = 'vote-' + Date.now() + Math.floor(Math.random() * 1000);
+        const div = document.createElement('div');
+        div.className = 'party-card'; 
+        div.innerHTML = `
+            <div class="card-top">
+                <input type="text" class="p-name" placeholder="ΌΝΟΜΑ ΠΑΡΑΤΑΞΗΣ..." value="${partyName}" oninput="this.value = this.value.toUpperCase(); resetTieWinners(); updateRealTimeInfo()">
+                <button class="btn-del" onclick="this.parentElement.parentElement.remove(); resetTieWinners(); updateRealTimeInfo()">×</button>
+            </div>
+            <div class="vote-section">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <div class="vote-control">
+                        <button type="button" class="btn-vote btn-minus" onclick="changeVote('${uniqueId}', -1)">-</button>
+                        <input type="text" inputmode="numeric" id="${uniqueId}" class="p-votes vote-input" value="" oninput="handleNumericInput(this)">
+                        <button type="button" class="btn-vote btn-plus" onclick="changeVote('${uniqueId}', 1)">+</button>
+                    </div>
+                    <div class="sequence-list" id="seq-${uniqueId}"></div>
+                </div>
+                <div class="realtime-wrapper" id="info-${uniqueId}" style="visibility:hidden"></div>
+            </div>
+        `;
+        document.getElementById('party-list').appendChild(div);
+        updateRealTimeInfo();
+    }
+
+    function resolveTie(inputId) {
+        manualTieWinners[inputId] = (manualTieWinners[inputId] || 0) + 1;
+        fullCalculationAndDisplay();
+    }
+
+    function fullCalculationAndDisplay() {
+        const expectedTotalInput = document.getElementById('expectedVoters');
+        let expectedTotal = parseInt(expectedTotalInput.value);
+        const nameList = document.querySelectorAll('.p-name');
+        const voteList = document.querySelectorAll('.p-votes');
+        const invalid = parseInt(document.getElementById('invalidVotes').value) || 0;
+        const seatsTotal = parseInt(document.getElementById('totalSeats').value) || 1;
+        
+        let currentSum = 0;
+        let partyData = [];
+        for (let i = 0; i < nameList.length; i++) {
+            let v = parseInt(voteList[i].value) || 0;
+            currentSum += v;
+            partyData.push({ votes: v, name: nameList[i].value.trim() || `Παράταξη ${i+1}`, inputId: voteList[i].id });
+        }
+        const actualTotal = currentSum + invalid;
+
+        if (!isNaN(expectedTotal) && expectedTotal > 0) {
+            if (actualTotal !== expectedTotal) {
+                let fixIt = confirm(`⚠️ ΑΣΥΜΦΩΝΙΑ!\n\nΔηλώσατε ψηφίσαντες: ${expectedTotal}\nΆθροισμα ψήφων (Έγκυρα+Λευκά/Άκυρα): ${actualTotal}\n\nΝα γίνει διόρθωση στο ${actualTotal} για να συνεχίσουμε;`);
+                if (fixIt) { expectedTotalInput.value = actualTotal; resetTieWinners(); updateRealTimeInfo(); } else { return; }
+            }
+        } else {
+            if (actualTotal === 0) { alert("Δεν βρέθηκαν ψήφοι!"); return; }
+        }
+
+        const mode = document.querySelector('input[name="election_mode"]:checked').value;
+        if (mode === 'olme' && actualTotal < 51) {
+            alert("⚠️ Η ΕΛΜΕ δεν συγκεντρώνει τον απαιτούμενο αριθμό ψηφισάντων (51) για την εκλογή αντιπροσώπου. Δεν εκλέγεται κανένας αντιπρόσωπος στην ΟΛΜΕ.");
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('btn-details').style.display = 'none';
+            return; 
+        }
+
+        const result = calculateSeats(partyData, currentSum, seatsTotal, true);
+        
+        if (result.tieDetected) {
+            let warnBox = document.getElementById('tie-warning');
+            warnBox.style.display = 'block';
+            let html = `<strong style="font-size:1.1em; color:#856404;">⚠️ ΕΚΚΡΕΜΟΤΗΤΑ: ΑΠΟΛΥΤΗ ΙΣΟΨΗΦΙΑ (${result.tieData.phase})</strong><br>`;
+            html += `Οι συνδυασμοί <strong>${result.tieData.parties.map(p=>p.name).join(', ')}</strong> έχουν τα ίδια ακριβώς δικαιώματα.<br>`;
+            html += `Απαιτείται ΚΛΗΡΩΣΗ για <strong>${result.tieData.contestedSeats}</strong> εκκρεμή έδρα/ες!<br>`;
+            
+            html += `<div style="margin-top:15px; padding-top:15px; border-top:1px solid #ffeeba;">`;
+            html += `<strong style="color:#d32f2f;">Πραγματοποιήστε την κλήρωση και επιλέξτε ποιος κερδίζει την έδρα για να συνεχίσετε:</strong><br><br>`;
+            html += `<div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">`;
+            
+            result.tieData.parties.forEach(p => {
+                html += `<button type="button" class="main-btn btn-tie-win" onclick="resolveTie('${p.inputId}')">🏆 Κληρώθηκε: ${p.name}</button>`;
+            });
+            
+            html += `</div></div>`;
+            warnBox.innerHTML = html;
+            
+            document.getElementById('btn-pdf').style.display = 'none';
+            document.getElementById('btn-email').style.display = 'none';
+        } else {
+            document.getElementById('tie-warning').style.display = 'none';
+            document.getElementById('btn-pdf').style.display = 'block';
+            document.getElementById('btn-email').style.display = 'block';
+        }
+
+        document.getElementById('show-total').innerText = actualTotal;
+        document.getElementById('show-valid').innerText = currentSum;
+        document.getElementById('show-measure').innerText = result.measure;
+
+        const tbody = document.querySelector('#res-table tbody');
+        tbody.innerHTML = '';
+        
+        let displayParties = [...partyData].sort((a, b) => {
+            if (b.seats !== a.seats) return b.seats - a.seats;
+            return b.votes - a.votes;
+        });
+
+        displayParties.forEach(p => {
+            if (p.votes === 0) return;
+            let per = currentSum > 0 ? ((p.votes / currentSum) * 100).toFixed(1) : "0.0";
+            tbody.innerHTML += `<tr><td>${p.name}</td><td>${p.votes}</td><td><span class="percent">${per}%</span></td><td><span class="badge">${p.seats}</span></td></tr>`;
+        });
+
+        if (invalid > 0) tbody.innerHTML += `<tr class="gray-row"><td>Λευκά / Άκυρα</td><td>${invalid}</td><td>${(actualTotal>0?((invalid/actualTotal)*100).toFixed(1):0)}%</td><td>-</td></tr>`;
+
+        document.getElementById('det-measureA').innerText = result.measure;
+        document.getElementById('det-threshold').innerText = result.threshold.toFixed(2);
+        document.getElementById('det-remSeats').innerText = result.unallocatedAfterA;
+
+        const detBody = document.querySelector('#detailed-table tbody');
+        detBody.innerHTML = '';
+        partyData.forEach(p => {
+            if (p.votes === 0) return;
+            detBody.innerHTML += `<tr>
+                <td>${p.name}</td>
+                <td>${p.votes}</td>
+                <td>${p.seatsA}</td>
+                <td>${p.rem}</td>
+                <td>${p.seatsB}</td>
+                <td>${p.seatsC}</td>
+                <td><strong>${p.seats}</strong></td>
+            </tr>`;
+        });
+
+        const seqTbody = document.querySelector('#pdf-seq-table tbody');
+        seqTbody.innerHTML = '';
+        partyData.forEach(p => {
+            if (p.votes > 0) {
+                let seqs = (ballotRegistry[p.inputId] || []).join(', ');
+                seqTbody.innerHTML += `<tr><td>${p.name}</td><td style="font-family:monospace; font-size:0.9em; text-align:left; line-height:1.5;">${seqs}</td></tr>`;
+            }
+        });
+        if (invalid > 0) {
+            let seqs = (ballotRegistry['invalidVotes'] || []).join(', ');
+            seqTbody.innerHTML += `<tr class="gray-row"><td>Λευκά / Άκυρα</td><td style="font-family:monospace; font-size:0.9em; text-align:left; line-height:1.5;">${seqs}</td></tr>`;
+        }
+
+        document.getElementById('results-container').style.display = 'block';
+        document.getElementById('btn-details').style.display = 'block';
+        document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleDetails() {
+        const el = document.getElementById('details-container');
+        el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+        if(el.style.display === 'block') el.scrollIntoView({behavior:'smooth'});
+    }
+
+    function printToPDF() {
+        const mode = document.querySelector('input[name="election_mode"]:checked').value;
+        const typeText = mode === 'olme' ? 'ΟΛΜΕ' : 'Δ.Σ. ΕΛΜΕ';
+        const elmeArea = prompt("Εισάγετε την περιοχή της ΕΛΜΕ (π.χ. Νότιας Αθήνας):", "");
+        if (elmeArea === null) return; 
+        const date = prompt("Εισάγετε ημερομηνία:", new Date().toLocaleDateString('el-GR'));
+        if (date === null) return;
+
+        document.getElementById('pdf-title-text').innerText = `ΕΛΜΕ ${elmeArea}`;
+        document.getElementById('pdf-date-text').innerText = `Αποτελέσματα Εκλογών ${typeText} - ${date}`;
+        window.print();
+    }
+
+    function openEmailModal() {
+        const tbody = document.querySelector('#res-table tbody');
+        const rows = tbody.querySelectorAll('tr');
+        if (rows.length === 0) return;
+
+        const centralFactions = ["ΣΥΝΕΚ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜΒ", "ΠΕΚ"];
+        let html = '';
+
+        rows.forEach((row, index) => {
+            if(row.classList.contains('gray-row')) return; 
+            
+            let cols = row.querySelectorAll('td');
+            let localName = cols[0].innerText;
+            
+            let autoSelect = "";
+            let localUpper = localName.toUpperCase();
+            centralFactions.forEach(f => {
+                if(localUpper.includes(f)) autoSelect = f;
+            });
+
+            html += `<div style="margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:12px;">
+                <strong>${localName}</strong><br>
+                <select id="map-party-${index}" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc; font-size:1rem;">
+                    <option value="">-- Χωρίς Κεντρική Αντιστοίχιση --</option>
+                    <option value="ΣΥΝΕΚ" ${autoSelect === "ΣΥΝΕΚ" ? "selected" : ""}>ΣΥΝΕΚ</option>
+                    <option value="ΔΑΚΕ" ${autoSelect === "ΔΑΚΕ" ? "selected" : ""}>ΔΑΚΕ</option>
+                    <option value="ΑΣΕ" ${autoSelect === "ΑΣΕ" ? "selected" : ""}>ΑΣΕ</option>
+                    <option value="ΠΑΡΕΜΒ" ${autoSelect === "ΠΑΡΕΜΒ" ? "selected" : ""}>ΠΑΡΕΜΒ</option>
+                    <option value="ΠΕΚ" ${autoSelect === "ΠΕΚ" ? "selected" : ""}>ΠΕΚ</option>
+                    <option value="ΑΛΛΗ">ΑΛΛΗ</option>
+                </select>
+            </div>`;
+        });
+
+        document.getElementById('mapping-container').innerHTML = html;
+        document.getElementById('modal-election-date').value = new Date().toLocaleDateString('el-GR');
+        document.getElementById('email-modal').style.display = 'flex';
+    }
+
+    function closeEmailModal() {
+        document.getElementById('email-modal').style.display = 'none';
+    }
+
+    function executeSendEmail() {
+        const senderName = document.getElementById('modal-sender-name').value || "Μη δηλωμένο";
+        const elmeArea = document.getElementById('modal-elme-name').value || "Μη δηλωμένη";
+        const electionDate = document.getElementById('modal-election-date').value || new Date().toLocaleDateString('el-GR');
+        const mode = document.querySelector('input[name="election_mode"]:checked').value;
+        const typeText = mode === 'olme' ? 'ΟΛΜΕ' : 'Δ.Σ. ΕΛΜΕ';
+        
+        closeEmailModal();
+
+        let year = new Date().getFullYear();
+        let subjectType = mode === 'olme' ? 'ΟΛΜΕ' : 'ΕΛΜΕ';
+        let subject = `ΕΚΛΟΓΕΣ ${subjectType} ${elmeArea} ${year}`;
+
+        let total = document.getElementById('show-total').innerText;
+        let valid = document.getElementById('show-valid').innerText;
+        let invalid = document.getElementById('invalidVotes').value || "0";
+        let seats = document.getElementById('totalSeats').value;
+        let labelSeat = mode === 'olme' ? 'Αντιπροσώπων' : 'Εδρών Δ.Σ.';
+
+        let body = `ΑΠΟΤΕΛΕΣΜΑΤΑ ΕΚΛΟΓΩΝ ΓΙΑ ${typeText}\n`;
+        body += `ΕΛΜΕ: ${elmeArea}\n`;
+        body += `Ημερομηνία: ${electionDate}\n`;
+        body += `Αποστολέας: ${senderName}\n`;
+        body += `--------------------------------------------------\n`;
+        body += `Σύνολο ${labelSeat}: ${seats}\n`;
+        body += `Ψηφίσαντες: ${total}\n`;
+        body += `Έγκυρα: ${valid}\n`;
+        body += `Λευκά / Άκυρα: ${invalid}\n\n`;
+        body += `ΚΑΤΑΝΟΜΗ ${labelSeat.toUpperCase()}:\n`;
+        body += `--------------------------------------------------\n`;
+        
+        let headerName = "ΠΑΡΑΤΑΞΗ".padEnd(15, ' ');
+        body += `${headerName} | ΨΗΦΟΙ | ΠΟΣΟΣΤΟ | ΕΔΡΕΣ\n`;
+        body += `--------------------------------------------------\n`;
+
+        const rows = document.querySelectorAll('#res-table tbody tr');
+        rows.forEach((row, index) => {
+            if(row.classList.contains('gray-row')) return;
+            let cols = row.querySelectorAll('td');
+            if(cols.length === 4) {
+                let localName = cols[0].innerText;
+                let votes = cols[1].innerText;
+                let percentage = cols[2].innerText;
+                let seatsVal = cols[3].innerText;
+                
+                let selectEl = document.getElementById(`map-party-${index}`);
+                let centralName = selectEl ? selectEl.value : "";
+                let finalNameStr = localName;
+                if (centralName === "ΑΛΛΗ") finalNameStr = localName;
+                else if (centralName && centralName !== localName) finalNameStr = `${centralName} (${localName})`;
+                else if (centralName === localName) finalNameStr = centralName;
+
+                let paddedName = finalNameStr.padEnd(15, ' ');
+                body += `${paddedName} | ${votes} | ${percentage} | ${seatsVal}\n`;
+            }
+        });
+
+        body += `--------------------------------------------------\n\n`;
+        body += `Παρατηρήσεις:\n[Παρακαλώ γράψτε εδώ τυχόν παρατηρήσεις...]\n\n`;
+        body += `[Αυτόματο μήνυμα από την εφαρμογή καταμέτρησης]\n`;
+
+        let mailtoLink = `mailto:synekgram@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = mailtoLink;
+    }
+</script>
+
+</body>
+</html>
