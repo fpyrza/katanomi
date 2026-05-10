@@ -6,9 +6,7 @@
     <title>Κατανομή Εδρών (Ν. 1264/1982)</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1565c0">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <meta name="theme-color" content="#b91825">
 
     <script>
       if ('serviceWorker' in navigator) {
@@ -24,66 +22,76 @@
         /* Reset */
         input[type="number"]::-webkit-inner-spin-button, 
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="text"] { -moz-appearance: textfield; appearance: textfield; font-family: inherit; }
+        input[type="text"], input[type="date"] { -moz-appearance: textfield; appearance: textfield; font-family: inherit; }
 
         :root {
-            --syn-red: #CC0000;
-            --syn-blue: #1565c0; 
-            --syn-blue-light: #2196f3;
-            --text-grey: #757575;
+            /* Επίσημα Χρώματα ΣΥΝΕΚ & Ουδέτερα */
+            --syn-red: #b91825; 
+            --syn-red-light: #d82b3a;
+            --dark-grey: #37474f;
+            --text-grey: #616161;
             --soft-text: #888;
         }
 
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
         
         h1 { text-align: center; color: var(--syn-red); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; font-size: 1.6rem; }
-        
+        .main-subtitle { text-align: center; font-size: 0.85em; color: #666; margin-top: -10px; margin-bottom: 15px; }
+
+        /* Νέο Κεντρικό πεδίο ΕΛΜΕ & Ημερομηνία */
+        .elme-input-box { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .elme-input-box input { padding: 10px; border: 2px solid var(--syn-red); border-radius: 6px; font-size: 1.1rem; text-align: center; color: var(--dark-grey); font-weight: bold; }
+        #global-elme-name { flex: 2; min-width: 250px; }
+        #global-election-date { flex: 1; min-width: 150px; }
+
         /* PDF Header */
-        #pdf-header-info { display: none; text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--syn-blue); padding-bottom: 10px; }
-        #pdf-title-text { color: #333; margin: 5px 0; font-size: 1.4rem; }
-        #pdf-date-text { color: #666; margin: 0; font-size: 1rem; }
+        #pdf-header-info { display: none; text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--syn-red); padding-bottom: 15px; }
+        #pdf-title-text { color: #333; margin: 5px 0 5px 0; font-size: 1.8rem; font-weight: bold; }
+        #pdf-date-text { color: var(--dark-grey); margin: 0; font-size: 1.2rem; font-weight: bold; }
+        #pdf-subtitle-text { font-size: 0.95rem; color: #555; margin: 5px 0 0 0; font-style: italic;}
 
         /* Config */
-        .config-box { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #90caf9; }
+        .config-box { background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e0e0e0; }
         .control-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .counter-wrapper { display: flex; align-items: center; gap: 8px; }
         .live-counter { font-size: 1.4rem; font-weight: bold; color: var(--syn-red); }
         .slash-separator { font-size: 1.4rem; color: #aaa; font-weight: 300; }
-        input[type="text"].big-input { width: 80px; padding: 5px; text-align: center; font-size: 1.2em; font-weight: bold; border: 2px solid var(--syn-blue); border-radius: 5px; }
-        .config-box label { color: var(--syn-blue); font-weight: bold; }
+        input[type="text"].big-input { width: 80px; padding: 5px; text-align: center; font-size: 1.2em; font-weight: bold; border: 2px solid var(--dark-grey); border-radius: 5px; }
+        .config-box label { color: var(--dark-grey); font-weight: bold; }
 
         /* Mode Selector */
-        .mode-selector { text-align: center; background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ccc; font-weight: bold; color: var(--syn-blue); }
+        .mode-selector { text-align: center; background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ccc; font-weight: bold; color: var(--syn-red); }
         .mode-selector label { margin: 0 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
-        .mode-selector input[type="radio"] { cursor: pointer; transform: scale(1.2); }
+        .mode-selector input[type="radio"] { cursor: pointer; transform: scale(1.2); accent-color: var(--syn-red); }
 
         /* Cards */
         .party-card { background: #fff; border: 1px solid #e0e0e0; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px; }
         .card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
         input[type="text"].p-name { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; font-weight: 500; text-transform: uppercase; }
-        .btn-del { background: var(--syn-red); color: white; border: none; width: 35px; height: 35px; border-radius: 5px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-del { background: var(--text-grey); color: white; border: none; width: 35px; height: 35px; border-radius: 5px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-del:hover { background: #d32f2f; }
 
         .vote-section { display: flex; align-items: center; justify-content: space-between; }
         .vote-control { display: flex; align-items: center; gap: 0; }
         .vote-input { text-align: center; padding: 0; font-weight: bold; font-size: 1.2rem; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; border-left: none; border-right: none; border-radius: 0; width: 70px; height: 45px; box-sizing: border-box; }
         
-        .btn-vote { width: 50px; height: 45px; background: var(--syn-blue-light); color: white; border: none; font-size: 1.5rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
-        .btn-vote:active { background: var(--syn-blue); transform: scale(0.95); }
+        .btn-vote { width: 50px; height: 45px; background: var(--syn-red-light); color: white; border: none; font-size: 1.5rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
+        .btn-vote:active { background: var(--syn-red); transform: scale(0.95); }
         .btn-minus { border-radius: 5px 0 0 5px; }
         .btn-plus { border-radius: 0 5px 5px 0; }
 
         /* Realtime Info & Sequences */
         .realtime-wrapper { text-align: right; font-size: 0.95rem; line-height: 1.2; font-style: normal; color: var(--soft-text); display: flex; flex-direction: column; align-items: flex-end; }
         .rt-label { color: var(--soft-text); font-size: 0.75rem; font-weight: normal; margin-bottom: 2px; text-transform: none; }
-        .rt-data { font-weight: bold; color: var(--syn-blue); }
+        .rt-data { font-weight: bold; color: var(--syn-red); }
         
         .sequence-list { font-size: 0.9rem; color: #757575; font-family: inherit; font-weight: normal; margin: 0; padding: 0; border: none; background: transparent; display: none; margin-left: 8px; }
 
         /* Extra Votes */
         .extra-container { display: flex; gap: 10px; margin-bottom: 10px; }
-        .extra-box { flex: 1; background: #fff3e0; padding: 10px; border-radius: 8px; border: 1px solid #ffe0b2; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .extra-label { font-weight: bold; color: #e65100; font-size: 0.9rem; }
+        .extra-box { flex: 1; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .extra-label { font-weight: bold; color: var(--dark-grey); font-size: 0.9rem; }
         .extra-control-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; }
 
         /* Measure Bar */
@@ -96,10 +104,13 @@
         button.main-btn { width: 100%; padding: 12px; border: none; border-radius: 6px; color: white; font-weight: bold; font-size: 1rem; cursor:pointer; }
         .btn-add { background: #43a047; }
         .btn-reset { background: #757575; }
-        .btn-calc { background: var(--syn-blue); font-size: 1.2rem; box-shadow: 0 4px 6px rgba(21, 101, 192, 0.3); margin-top: 10px;}
-        .btn-pdf { background: #e65100; font-size: 1.1rem; margin-top: 20px; display: none; width: 100%; }
-        .btn-email { background: #0288d1; font-size: 1.1rem; margin-top: 10px; display: none; width: 100%; }
-        .btn-details { background: #00897b; font-size: 1rem; display:none; }
+        .btn-calc { background: var(--syn-red); font-size: 1.2rem; box-shadow: 0 4px 6px rgba(185, 24, 37, 0.3); margin-top: 10px;}
+        
+        /* Κουμπιά Εξαγωγής */
+        .btn-email { background: #e65100; font-size: 1.1rem; margin-top: 20px; display: none; width: 100%; }
+        .btn-pdf { background: var(--dark-grey); font-size: 1rem; margin-top: 10px; display: none; width: 100%; }
+        
+        .btn-details { background: var(--dark-grey); font-size: 1rem; display:none; margin-top: 10px;}
         .btn-tie-win { background: #d32f2f; margin-top:5px; padding: 8px 15px; font-size: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s; }
         .btn-tie-win:hover { background: #b71c1c; transform: scale(1.02); }
 
@@ -110,13 +121,13 @@
         .stat-num { font-size: 1.4em; font-weight: bold; display: block; color: #333; }
         .stat-lbl { font-size: 0.75em; text-transform: uppercase; color: #555; font-weight: 600;}
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.95em; line-height: 1.4; margin-bottom: 10px; }
-        th { background: #37474f; color: white; padding: 10px; text-align: center; }
-        td { border-bottom: 1px solid #eee; padding: 10px 8px; text-align: center; vertical-align: middle; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95em; line-height: 1.4; margin-bottom: 10px; table-layout: fixed;}
+        th { background: var(--dark-grey); color: white; padding: 10px; text-align: center; }
+        td { border-bottom: 1px solid #eee; padding: 10px 8px; text-align: center; vertical-align: middle; word-wrap: break-word;}
         td:first-child { text-align: left; font-weight: bold; }
         
-        .percent { background: #e3f2fd; color: var(--syn-blue); padding: 4px 6px; border-radius: 4px; font-weight: bold; display: inline-block; }
-        .badge { background: #c8e6c9; color: #2e7d32; padding: 3px 8px; border-radius: 10px; font-weight: bold; font-size: 1.1em; }
+        .percent { background: #fce4e4; color: var(--syn-red); padding: 4px 6px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .badge { background: #e0e0e0; color: #333; padding: 3px 8px; border-radius: 10px; font-weight: bold; font-size: 1.1em; }
         .gray-row td { background-color: #fafafa; color: #555; font-style: italic; }
 
         /* DETAILS TABLE STYLE */
@@ -125,14 +136,16 @@
         .details-info div { background: white; padding: 8px; border: 1px solid #eee; border-radius: 4px; }
         .details-info strong { color: #333; }
         
-        #detailed-table th { background: #546e7a; font-size: 0.85rem; }
+        #detailed-table th { background: #616161; font-size: 0.85rem; }
         #detailed-table td { font-size: 0.9rem; text-align: center; }
         #detailed-table td:first-child { text-align: left; }
+        #tie-footnote { display: none; font-size: 0.85em; color: #666; margin-top: 5px; text-align: right; font-style: italic; }
 
         #tie-warning { display: none; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: normal; line-height:1.5; }
 
         /* PDF Sequences Section */
         #pdf-sequences-container { display: none; }
+        #pdf-footer { display: none; }
         
         /* Modal Email Mapping */
         .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center; }
@@ -142,19 +155,34 @@
 
         .credits { margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; text-align: center; font-size: 0.85rem; color: var(--text-grey); line-height: 1.6; }
 
+        /* --- STYLES ΕΓΓΕΝΟΥΣ ΕΚΤΥΠΩΣΗΣ (Native PDF Print) --- */
         @media print {
-            body { background-color: #fff; padding: 0; }
-            .container { box-shadow: none; max-width: 100%; padding: 0; }
-            .config-box, #party-list, .extra-container, .measure-bar, .actions-top, .actions-bottom, h1, .btn-pdf, .btn-email, .btn-details, .mode-selector { display: none !important; }
-            #pdf-header-info { display: block !important; }
-            #results-container, #details-container { display: block !important; margin-top: 0; border: none; }
             
-            /* Κάνουμε ορατό τον πίνακα αύξοντων αριθμών ΜΟΝΟ στην εκτύπωση/PDF */
-            #pdf-sequences-container { display: block !important; margin-top: 40px; page-break-before: auto; }
+            @page { margin: 15mm; }
+            
+            body { background-color: #fff; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0 15px; position: static; padding-bottom: 30px; }
+            
+            /* Κρύβουμε όλα τα περιττά UI στοιχεία */
+            h1, .main-subtitle, .elme-input-box, .mode-selector, .config-box, #party-list, .extra-container, .measure-bar, .actions-top, .actions-bottom, .btn-pdf, .btn-email, .btn-details, .credits, #tie-warning, .modal-overlay { display: none !important; }
+            
+            #pdf-header-info { display: block !important; }
+            #results-container { display: block !important; margin-top: 0; border: none; }
             
             .stats { border: 1px solid #ddd; border-radius: 8px; padding: 10px; }
             .stat-box { border: none; background: none; padding: 0; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+            /* Λογική για το Απλό PDF */
+            body.simple-pdf-mode #details-container { display: none !important; }
+            body.simple-pdf-mode #pdf-sequences-container { display: none !important; }
+
+            /* Λογική για το Πλήρες PDF */
+            body:not(.simple-pdf-mode) #details-container { display: block !important; margin-top: 30px; border: 1px solid #ddd; page-break-inside: avoid; }
+            body:not(.simple-pdf-mode) #pdf-sequences-container { display: block !important; margin-top: 30px; page-break-before: auto; }
+            
+            /* Εμφάνιση Footer */
+            #pdf-footer { display: block !important; position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 11px; color: #777; border-top: 1px solid #eee; padding-top: 8px; background: #fff; }
         }
     </style>
 </head>
@@ -162,7 +190,12 @@
 
 <div class="container" id="app-content">
     <h1 id="main-title">🗳️ ΣΥΝΕΚ - Εκλογή Αντιπροσώπων ΟΛΜΕ</h1>
-    <div style="text-align: center; font-size: 0.85em; color: #666; margin-top: -10px; margin-bottom: 15px;">Σύστημα Απλής Αναλογικής (Ν. 1264/1982)</div>
+    <div class="main-subtitle">Σύστημα Απλής Αναλογικής (Ν. 1264/1982)</div>
+
+    <div class="elme-input-box" data-html2canvas-ignore="true">
+        <input type="text" id="global-elme-name" placeholder="Όνομα ΕΛΜΕ" oninput="this.value = this.value.toUpperCase();">
+        <input type="date" id="global-election-date">
+    </div>
 
     <div class="mode-selector" data-html2canvas-ignore="true">
         <label>
@@ -178,6 +211,7 @@
     <div id="pdf-header-info">
         <h2 id="pdf-title-text"></h2>
         <p id="pdf-date-text"></p>
+        <p id="pdf-subtitle-text">Σύστημα Απλής Αναλογικής (Ν. 1264/1982)</p>
     </div>
 
     <div class="config-box" data-html2canvas-ignore="true">
@@ -193,7 +227,7 @@
         <div class="control-row">
             <label id="lbl-seats">Σύνολο Αντιπροσώπων:</label>
             <div class="counter-wrapper">
-                <input type="text" inputmode="numeric" id="totalSeats" class="big-input" value="" readonly style="background-color: transparent; border: none; color: var(--syn-blue); font-size: 1.6rem; text-align: right; width: 60px;" oninput="handleNumericInput(this)">
+                <input type="text" inputmode="numeric" id="totalSeats" class="big-input" value="" readonly style="background-color: transparent; border: none; color: var(--syn-red); font-size: 1.6rem; text-align: right; width: 60px;" oninput="handleNumericInput(this)">
             </div>
         </div>
     </div>
@@ -222,7 +256,7 @@
         <button class="main-btn btn-reset" onclick="resetApp()">↺ Καθαρισμός</button>
     </div>
     <div class="actions-bottom" data-html2canvas-ignore="true">
-        <button class="main-btn btn-calc" onclick="fullCalculationAndDisplay()">ΥΠΟΛΟΓΙΣΜΟΣ ΚΑΤΑΝΟΜΗΣ</button>
+        <button class="main-btn btn-calc" onclick="fullCalculationAndDisplay()">ΚΑΤΑΝΟΜΗ ΕΔΡΩΝ</button>
     </div>
 
     <div id="results-container">
@@ -230,7 +264,7 @@
         <div class="stats">
             <div class="stat-box"><span class="stat-num" id="show-total">0</span><span class="stat-lbl">Ψηφίσαντες</span></div>
             <div class="stat-box"><span class="stat-num" id="show-valid" style="color:#2e7d32">0</span><span class="stat-lbl">Έγκυρα</span></div>
-            <div class="stat-box"><span class="stat-num" id="show-measure" style="color:var(--syn-blue)">0</span><span class="stat-lbl">Μετρο</span></div>
+            <div class="stat-box"><span class="stat-num" id="show-invalid-summary" style="color:#e65100">0</span><span class="stat-lbl">Λευκα/Ακυρα</span></div>
         </div>
         <h3 style="text-align:center; color:#333; margin:10px 0;">Τελικά Αποτελέσματα</h3>
         <table id="res-table">
@@ -239,12 +273,12 @@
         </table>
     </div>
 
-    <div style="text-align:center; margin-top:10px;" data-html2canvas-ignore="true">
-        <button class="main-btn btn-details" id="btn-details" onclick="toggleDetails()">📋 Προβολή Ανάλυσης Φάσεων</button>
+    <div style="text-align:center;" data-html2canvas-ignore="true">
+        <button class="main-btn btn-details" id="btn-details" onclick="toggleDetails()">📋 Αναλυτική Κατανομή Εδρών</button>
     </div>
 
     <div id="details-container">
-        <h4 style="margin-top:0; text-align:center; color:#546e7a;">Αναλυτικά Στοιχεία Κατανομής</h4>
+        <h4 style="margin-top:0; text-align:center; color:var(--dark-grey);">Αναλυτικά Στοιχεία Κατανομής</h4>
         
         <div class="details-info">
             <div><strong>Εκλογικό Μέτρο:</strong> <span id="det-measureA">0</span></div>
@@ -266,10 +300,11 @@
             </thead>
             <tbody></tbody>
         </table>
+        <div id="tie-footnote">* Έδρα που προέκυψε από κλήρωση</div>
     </div>
 
     <div id="pdf-sequences-container">
-        <h4 style="margin-top:30px; margin-bottom:10px; text-align:center; color:#37474f; border-top:2px solid #eee; padding-top:20px;">Καταγραφή Αύξοντων Αριθμών Ψηφοδελτίων</h4>
+        <h4 style="margin-top:30px; margin-bottom:10px; text-align:center; color:var(--dark-grey); border-top:2px solid #eee; padding-top:20px;">Καταγραφή Αύξοντων Αριθμών Ψηφοδελτίων</h4>
         <table id="pdf-seq-table">
             <thead>
                 <tr>
@@ -281,8 +316,9 @@
         </table>
     </div>
 
-    <button class="main-btn btn-pdf" id="btn-pdf" onclick="printToPDF()">📥 Λήψη PDF</button>
-    <button class="main-btn btn-email" id="btn-email" onclick="openEmailModal()">📧 Αποστολή με Email</button>
+    <button class="main-btn btn-email" id="btn-email" onclick="openEmailModal()">📧 Αποστολή αποτελεσμάτων με Email</button>
+    <button class="main-btn btn-pdf" id="btn-pdf-results" onclick="generatePDF('results')">📥 Λήψη αποτελεσμάτων (pdf)</button>
+    <button class="main-btn btn-pdf" id="btn-pdf-seq" onclick="generatePDF('sequences')">📥 Λήψη αύξοντα αριθμού ψηφοδελτιων (pdf)</button>
     
     <div class="credits">
         <strong>Πύρζα Φανή</strong> | <a href="mailto:fpyrza.alt@gmail.com" style="color: var(--text-grey); text-decoration: none;">fpyrza.alt@gmail.com</a> | 6972137509<br>
@@ -293,28 +329,20 @@
                 <img alt="Άδεια Creative Commons" style="border-width:0; width: 88px; height: 31px;" src="https://i.creativecommons.org/l/by/4.0/88x31.png" />
             </a>
             <span style="font-size: 0.75em; color: var(--soft-text);">
-                Αυτό το έργο χορηγείται με άδεια <a rel="license" href="http://creativecommons.org/licenses/by/4.0/" target="_blank" style="color: var(--syn-blue); text-decoration: none; font-weight: bold;">Creative Commons Αναφορά Δημιουργού 4.0 Διεθνές</a>.
+                Αυτό το έργο χορηγείται με άδεια <a rel="license" href="http://creativecommons.org/licenses/by/4.0/" target="_blank" style="color: var(--syn-red); text-decoration: none; font-weight: bold;">Creative Commons Αναφορά Δημιουργού 4.0 Διεθνές</a>.
             </span>
         </div>
     </div>
+
+    <div id="pdf-footer">ΣΥΝΕΚ | ΠΥΡΖΑ ΦΑΝΗ | fpyrza.alt@gmail.com</div>
 </div>
 
 <div id="email-modal" class="modal-overlay" data-html2canvas-ignore="true">
     <div class="modal-content">
-        <h3 style="margin-top:0; color:var(--syn-blue);">Αποστολή Αποτελεσμάτων</h3>
+        <h3 style="margin-top:0; color:var(--syn-red);">Αποστολή Αποτελεσμάτων</h3>
         
-        <div style="margin-bottom: 10px;">
-            <label style="font-weight:bold; color:var(--syn-blue); font-size:0.9em;">Όνομα ΕΛΜΕ (χωρίς τη λέξη ΕΛΜΕ):</label>
-            <input type="text" id="modal-elme-name" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;" placeholder="π.χ. Νότιας Αθήνας">
-        </div>
-
-        <div style="margin-bottom: 10px;">
-            <label style="font-weight:bold; color:var(--syn-blue); font-size:0.9em;">Ημερομηνία Εκλογών:</label>
-            <input type="text" id="modal-election-date" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;">
-        </div>
-
         <div style="margin-bottom: 15px;">
-            <label style="font-weight:bold; color:var(--syn-blue); font-size:0.9em;">Ονοματεπώνυμο Αποστολέα:</label>
+            <label style="font-weight:bold; color:var(--dark-grey); font-size:0.9em;">Ονοματεπώνυμο Αποστολέα:</label>
             <input type="text" id="modal-sender-name" style="width:100%; padding:8px; margin-top:5px; border-radius:4px; border:1px solid #ccc; font-size:1rem; box-sizing:border-box;" placeholder="π.χ. Παπαδόπουλος Γιάννης">
         </div>
         
@@ -337,7 +365,6 @@
 
     function resetApp() {
         if (confirm("Είστε σίγουροι ότι θέλετε να καθαρίσετε όλα τα δεδομένα και να ξεκινήσετε από την αρχή;")) {
-            // Μηδενίζει επιθετικά όλα τα πεδία
             document.querySelectorAll('input').forEach(input => {
                 if(input.type === 'text' || input.type === 'number') input.value = '';
             });
@@ -396,7 +423,7 @@
             thSeats.innerText = 'Έδρες';
             seatsInput.readOnly = false;
             seatsInput.style.backgroundColor = '#fff';
-            seatsInput.style.border = '2px solid var(--syn-blue)';
+            seatsInput.style.border = '2px solid var(--dark-grey)';
             if (!seatsInput.value || seatsInput.value === "0") {
                 seatsInput.value = "7"; 
             }
@@ -419,6 +446,7 @@
             p.seats = p.seatsA;
             p.rem = measure > 0 ? p.votes - (p.seatsA * measure) : p.votes;
             p.effectiveRem = p.rem; 
+            p.wonByTie = false; // Νέο: Έλεγχος κλήρωσης
             allocatedA += p.seatsA;
         });
 
@@ -456,6 +484,7 @@
                             let wins = manualTieWinners[p.inputId] || 0;
                             for(let w=0; w<wins; w++){
                                 p.seats++; p.seatsB++; p.effectiveRem = 0; remaining--;
+                                p.wonByTie = true; // Καταγραφή της κλήρωσης
                             }
                         });
                         i += tied.length;
@@ -499,6 +528,7 @@
                             let wins = manualTieWinners[p.inputId] || 0;
                             for(let w=0; w<wins; w++){
                                 p.seats++; p.seatsC++; remaining--;
+                                p.wonByTie = true; // Καταγραφή της κλήρωσης
                             }
                         });
                         i += tied.length;
@@ -606,7 +636,11 @@
     window.onload = function() {
         toggleMode(); 
         
-        const defaultParties = ["ΣΥΝΕΚ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜΒ", "ΠΕΚ"];
+        // Αυτόματη ημερομηνία
+        document.getElementById('global-election-date').value = new Date().toISOString().split('T')[0];
+
+        
+        const defaultParties = ["ΣΥΝΕΚ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜ", "ΠΕΚ", "ΑΚΕ"];
         defaultParties.forEach(partyName => addRow(partyName));
 
         ['expectedVoters'].forEach(id => {
@@ -731,17 +765,20 @@
             html += `</div></div>`;
             warnBox.innerHTML = html;
             
-            document.getElementById('btn-pdf').style.display = 'none';
             document.getElementById('btn-email').style.display = 'none';
+            document.getElementById('btn-pdf-results').style.display = 'none';
+            document.getElementById('btn-pdf-seq').style.display = 'none';
         } else {
             document.getElementById('tie-warning').style.display = 'none';
-            document.getElementById('btn-pdf').style.display = 'block';
             document.getElementById('btn-email').style.display = 'block';
+            document.getElementById('btn-pdf-results').style.display = 'block';
+            document.getElementById('btn-pdf-seq').style.display = 'block';
         }
 
         document.getElementById('show-total').innerText = actualTotal;
         document.getElementById('show-valid').innerText = currentSum;
-        document.getElementById('show-measure').innerText = result.measure;
+        // Αντικατάσταση Μέτρου με Λευκά/Άκυρα
+        document.getElementById('show-invalid-summary').innerText = invalid;
 
         const tbody = document.querySelector('#res-table tbody');
         tbody.innerHTML = '';
@@ -774,21 +811,25 @@
                 <td>${p.rem}</td>
                 <td>${p.seatsB}</td>
                 <td>${p.seatsC}</td>
-                <td><strong>${p.seats}</strong></td>
+                <td><strong>${p.seats}${p.wonByTie ? ' *' : ''}</strong></td>
             </tr>`;
         });
+
+        // Εμφάνιση Υποσημείωσης μόνο αν υπάρχει κλήρωση
+        const hasTie = partyData.some(p => p.wonByTie);
+        document.getElementById('tie-footnote').style.display = hasTie ? 'block' : 'none';
 
         const seqTbody = document.querySelector('#pdf-seq-table tbody');
         seqTbody.innerHTML = '';
         partyData.forEach(p => {
             if (p.votes > 0) {
                 let seqs = (ballotRegistry[p.inputId] || []).join(', ');
-                seqTbody.innerHTML += `<tr><td>${p.name}</td><td style="font-family:monospace; font-size:0.9em; text-align:left; line-height:1.5;">${seqs}</td></tr>`;
+                seqTbody.innerHTML += `<tr><td>${p.name}</td><td style="font-family:monospace; font-size:0.9em; text-align:left; line-height:1.5; word-break: break-word; white-space: normal;">${seqs}</td></tr>`;
             }
         });
         if (invalid > 0) {
             let seqs = (ballotRegistry['invalidVotes'] || []).join(', ');
-            seqTbody.innerHTML += `<tr class="gray-row"><td>Λευκά / Άκυρα</td><td style="font-family:monospace; font-size:0.9em; text-align:left; line-height:1.5;">${seqs}</td></tr>`;
+            seqTbody.innerHTML += `<tr class="gray-row"><td>Λευκά / Άκυρα</td><td style="font-family:monospace; font-size:0.9em; text-align:left; line-height:1.5; word-break: break-word; white-space: normal;">${seqs}</td></tr>`;
         }
 
         document.getElementById('results-container').style.display = 'block';
@@ -802,17 +843,40 @@
         if(el.style.display === 'block') el.scrollIntoView({behavior:'smooth'});
     }
 
-    function printToPDF() {
+    // PDF Native Generator
+    function generatePDF(type) {
+        alert("ΣΗΜΑΝΤΙΚΗ ΟΔΗΓΙΑ:\n\nΣτο παράθυρο της εκτύπωσης που θα ανοίξει σε λίγο, βεβαιωθείτε ότι στο πεδίο 'Προορισμός' ή 'Εκτυπωτής' έχετε επιλέξει «Αποθήκευση ως PDF».");
+
         const mode = document.querySelector('input[name="election_mode"]:checked').value;
-        const typeText = mode === 'olme' ? 'ΟΛΜΕ' : 'Δ.Σ. ΕΛΜΕ';
-        const elmeArea = prompt("Εισάγετε την περιοχή της ΕΛΜΕ (π.χ. Νότιας Αθήνας):", "");
-        if (elmeArea === null) return; 
-        const date = prompt("Εισάγετε ημερομηνία:", new Date().toLocaleDateString('el-GR'));
-        if (date === null) return;
+        const typeText = mode === 'olme' ? 'Αντιπροσώπων ΟΛΜΕ' : 'Δ.Σ. ΕΛΜΕ';
+        
+        const elmeAreaInput = document.getElementById('global-elme-name').value.trim();
+        const elmeArea = elmeAreaInput !== "" ? elmeAreaInput : "ΜΗ ΔΗΛΩΜΕΝΗ ΕΛΜΕ";
+        
+        const dateInput = document.getElementById('global-election-date').value;
+        let displayDate = "";
+        if(dateInput) {
+            const parts = dateInput.split('-');
+            displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        } else {
+            displayDate = new Date().toLocaleDateString('el-GR');
+        }
 
         document.getElementById('pdf-title-text').innerText = `ΕΛΜΕ ${elmeArea}`;
-        document.getElementById('pdf-date-text').innerText = `Αποτελέσματα Εκλογών ${typeText} - ${date}`;
-        window.print();
+        document.getElementById('pdf-date-text').innerText = `Εκλογές ${typeText} - ${displayDate}`;
+
+        if (type === 'results') {
+            document.body.classList.add('simple-pdf-mode');
+        } else {
+            document.body.classList.remove('simple-pdf-mode');
+        }
+
+        setTimeout(() => {
+            window.print();
+            setTimeout(() => {
+                document.body.classList.remove('simple-pdf-mode');
+            }, 500);
+        }, 150);
     }
 
     function openEmailModal() {
@@ -820,7 +884,7 @@
         const rows = tbody.querySelectorAll('tr');
         if (rows.length === 0) return;
 
-        const centralFactions = ["ΣΥΝΕΚ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜΒ", "ΠΕΚ"];
+        const centralFactions = ["ΣΥΝΕΚ", "ΑΚΕ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜ", "ΠΕΚ"];
         let html = '';
 
         rows.forEach((row, index) => {
@@ -842,15 +906,15 @@
                     <option value="ΣΥΝΕΚ" ${autoSelect === "ΣΥΝΕΚ" ? "selected" : ""}>ΣΥΝΕΚ</option>
                     <option value="ΔΑΚΕ" ${autoSelect === "ΔΑΚΕ" ? "selected" : ""}>ΔΑΚΕ</option>
                     <option value="ΑΣΕ" ${autoSelect === "ΑΣΕ" ? "selected" : ""}>ΑΣΕ</option>
-                    <option value="ΠΑΡΕΜΒ" ${autoSelect === "ΠΑΡΕΜΒ" ? "selected" : ""}>ΠΑΡΕΜΒ</option>
+                    <option value="ΠΑΡΕΜ" ${autoSelect === "ΠΑΡΕΜ" ? "selected" : ""}>ΠΑΡΕΜ</option>
                     <option value="ΠΕΚ" ${autoSelect === "ΠΕΚ" ? "selected" : ""}>ΠΕΚ</option>
+                    <option value="ΑΚΕ" ${autoSelect === "ΑΚΕ" ? "selected" : ""}>ΑΚΕ</option>
                     <option value="ΑΛΛΗ">ΑΛΛΗ</option>
                 </select>
             </div>`;
         });
 
         document.getElementById('mapping-container').innerHTML = html;
-        document.getElementById('modal-election-date').value = new Date().toLocaleDateString('el-GR');
         document.getElementById('email-modal').style.display = 'flex';
     }
 
@@ -860,8 +924,16 @@
 
     function executeSendEmail() {
         const senderName = document.getElementById('modal-sender-name').value || "Μη δηλωμένο";
-        const elmeArea = document.getElementById('modal-elme-name').value || "Μη δηλωμένη";
-        const electionDate = document.getElementById('modal-election-date').value || new Date().toLocaleDateString('el-GR');
+        const elmeAreaInput = document.getElementById('global-elme-name').value.trim();
+        const elmeArea = elmeAreaInput !== "" ? elmeAreaInput : "Μη δηλωμένη";
+        
+        const dateInput = document.getElementById('global-election-date').value;
+        let electionDate = new Date().toLocaleDateString('el-GR');
+        if(dateInput) {
+            const parts = dateInput.split('-');
+            electionDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
         const mode = document.querySelector('input[name="election_mode"]:checked').value;
         const typeText = mode === 'olme' ? 'ΟΛΜΕ' : 'Δ.Σ. ΕΛΜΕ';
         
@@ -917,10 +989,16 @@
 
         body += `--------------------------------------------------\n\n`;
         body += `Παρατηρήσεις:\n[Παρακαλώ γράψτε εδώ τυχόν παρατηρήσεις...]\n\n`;
-        body += `[Αυτόματο μήνυμα από την εφαρμογή καταμέτρησης]\n`;
+        body += `[Αυτόματο μήνυμα από την εφαρμογή κατανομής εδρών]\n`;
 
-        let mailtoLink = `mailto:synekgram@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.location.href = mailtoLink;
+        // Ασφαλής άνοιγμα email χωρίς να χαθούν δεδομένα
+        const mailtoLink = `mailto:synekgram@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        const mailTrigger = document.createElement('a');
+        mailTrigger.href = mailtoLink;
+        mailTrigger.target = '_blank';
+        document.body.appendChild(mailTrigger);
+        mailTrigger.click();
+        document.body.removeChild(mailTrigger);
     }
 </script>
 
