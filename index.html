@@ -216,13 +216,14 @@
 
     <div class="config-box" data-html2canvas-ignore="true">
         
-        <div class="control-row">
-            <label>Άθροισμα ψήφων / Ψηφίσαντες:</label>
-            <div class="counter-wrapper">
-                <span class="live-counter" id="live-counter-disp">0</span>
-                <span class="slash-separator">/</span>
-                <input type="text" inputmode="numeric" id="expectedVoters" class="big-input" placeholder="" value="" oninput="handleNumericInput(this)" style="background:#fff;">
-            </div>
+        <div class="control-row" style="justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: flex-end; text-align: right;">
+                Έγκυρα [<span id="live-valid-disp" style="color:var(--syn-red); font-size: 1.1em;">0</span>] 
+                + Λ-Α [<span id="live-invalid-disp" style="color:var(--syn-red); font-size: 1.1em;">0</span>] 
+                = [<span id="live-counter-disp" style="color:var(--syn-red); font-size: 1.1em;">0</span>] 
+                / Ψηφίσαντες:
+            </label>
+            <input type="text" inputmode="numeric" id="expectedVoters" class="big-input" placeholder="" value="" oninput="handleNumericInput(this)" style="background:#fff;">
         </div>
         <div class="control-row">
             <label id="lbl-seats">Σύνολο Αντιπροσώπων:</label>
@@ -360,7 +361,8 @@
 <script>
     // --- ΚΑΘΟΛΙΚΕΣ ΜΕΤΑΒΛΗΤΕΣ ΓΙΑ ΙΣΟΨΗΦΙΕΣ ΚΑΙ Α/Α ΨΗΦΟΔΕΛΤΙΩΝ ---
     let manualTieWinners = {};
-    let globalBallotCounter = 0;
+    let globalBallotCounter = 0; // Α/Α για τα έγκυρα ψηφοδέλτια
+    let invalidBallotCounter = 0; // Α/Α ΜΟΝΟ για τα λευκά/άκυρα
     let ballotRegistry = {}; 
 
     function resetApp() {
@@ -388,8 +390,13 @@
             
             if (diff > 0) {
                 for (let i = 0; i < diff; i++) {
-                    globalBallotCounter++;
-                    ballotRegistry[id].push(globalBallotCounter);
+                    if (id === 'invalidVotes') {
+                        invalidBallotCounter++;
+                        ballotRegistry[id].push(invalidBallotCounter);
+                    } else {
+                        globalBallotCounter++;
+                        ballotRegistry[id].push(globalBallotCounter);
+                    }
                 }
             } else if (diff < 0) {
                 for (let i = 0; i < Math.abs(diff); i++) {
@@ -566,6 +573,8 @@
         
         const currentTotal = currentValid + invalid;
         document.getElementById('live-counter-disp').innerText = currentTotal;
+        document.getElementById('live-valid-disp').innerText = currentValid;
+        document.getElementById('live-invalid-disp').innerText = invalid;
 
         const referenceTotal = isProjecting ? expectedTotal : currentTotal;
         
@@ -639,8 +648,7 @@
         // Αυτόματη ημερομηνία
         document.getElementById('global-election-date').value = new Date().toISOString().split('T')[0];
 
-        
-        const defaultParties = ["ΣΥΝΕΚ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜ", "ΠΕΚ", "ΑΚΕ"];
+        const defaultParties = ["ΣΥΝΕΚ", "ΑΚΕ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜ", "ΠΕΚ"];
         defaultParties.forEach(partyName => addRow(partyName));
 
         ['expectedVoters'].forEach(id => {
@@ -662,8 +670,13 @@
         
         if (diff > 0) {
             for (let i = 0; i < diff; i++) {
-                globalBallotCounter++;
-                ballotRegistry[id].push(globalBallotCounter);
+                if (id === 'invalidVotes') {
+                    invalidBallotCounter++;
+                    ballotRegistry[id].push(invalidBallotCounter);
+                } else {
+                    globalBallotCounter++;
+                    ballotRegistry[id].push(globalBallotCounter);
+                }
             }
         } else if (diff < 0) {
             for (let i = 0; i < Math.abs(diff); i++) {
@@ -884,6 +897,7 @@
         const rows = tbody.querySelectorAll('tr');
         if (rows.length === 0) return;
 
+        // Αλλάζουμε τη σειρά: Το ΑΚΕ μπαίνει πριν τη ΔΑΚΕ για να μην το "καπελώνει"
         const centralFactions = ["ΣΥΝΕΚ", "ΑΚΕ", "ΔΑΚΕ", "ΑΣΕ", "ΠΑΡΕΜ", "ΠΕΚ"];
         let html = '';
 
